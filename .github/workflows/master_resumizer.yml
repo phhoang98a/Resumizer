@@ -34,7 +34,7 @@ jobs:
 
       - name: Zip artifact for deployment
         run: |
-          cd ./backend/JobServer
+          cd /backend/JobServer
           zip release.zip ./backend/JobServer/ -r
 
       - name: Upload artifact for deployment jobs
