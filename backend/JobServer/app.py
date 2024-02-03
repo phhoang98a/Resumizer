@@ -2,7 +2,9 @@ from flask import Flask, request
 from jobspy import scrape_jobs
 import pandas as pd
 app = Flask(__name__)
-
+@app.route("/hello")
+def hello():
+  return "hello", 200
 
 @app.route("/job", methods=['POST'])
 def job():
@@ -11,7 +13,8 @@ def job():
   location = request.json['location']
 
   jobs: pd.DataFrame = scrape_jobs(
-      site_name=["indeed", "linkedin", "glassdoor"],
+      # site_name=["indeed", "linkedin", "glassdoor"],
+      site_name=["indeed"],
       search_term=job_title,
       location=location,
       results_wanted=10,
