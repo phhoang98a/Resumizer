@@ -10,6 +10,7 @@ const upload = multer({ storage: storage });
 
 router.post('/', upload.single('resume'), async (req, res, next) => {
   const { jobTitle, openAIkey } = req.body; 
+  console.log(jobTitle, openAIkey)
   if (!req.file) {
     return res.status(400).json({ error: 'No file uploaded' });
   }
