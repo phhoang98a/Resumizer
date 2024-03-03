@@ -3,6 +3,7 @@ import { FadeIn } from "./FadeIn";
 import { Link, useLocation } from "react-router-dom";
 import blackLogo from '../assets/colorLogo.svg';
 import whiteLogo from '../assets/whiteLogo.svg';
+import Container from './Container';
 
 // Define the data for navigation links
 const navlinkes = [
@@ -10,10 +11,10 @@ const navlinkes = [
     name: "home.",
     link: "/home",
   },
-  // {
-  //   name: "about.",
-  //   link: "/about",
-  // },
+  {
+    name: "settings.",
+    link: "/settings",
+  },
   {
     name: "result.",
     link: "/result",
@@ -52,13 +53,19 @@ function Navbar() {
 
 
   return (
-    <div >
+    <Container >
       <FadeIn>
 
         {/* Navbar main body, using flex layout, including Resumizer title and navigation links */}
-        <div className="flex max-w-[1240px] justify-between max-sm:justify-center items-center text-black dark:text-white mx-auto px-8 py-4 max-lg:mx-2 rounded-[999px] mt-6 
-        bg-opacity-40 backdrop-blur-3xl border-white border-[1px] border-opacity-5 bg-white 
-        dark:bg-opacity-40 dark:backdrop-blur-3xl dark:border-black dark:border-[1px] dark:border-opacity-5 dark:bg-black ">
+        <div className="
+        flex max-w-[1240px] mb-2
+        justify-between max-sm:justify-center 
+        items-center text-black dark:text-white 
+        mx-auto px-8 py-4 max-lg:mx-2 rounded-[999px] mt-6 
+        bg-opacity-40 backdrop-blur-3xl 
+        border-white border-[1px] border-opacity-5 bg-white 
+        dark:bg-opacity-40 dark:backdrop-blur-3xl 
+        dark:border-black dark:border-[1px] dark:border-opacity-5 dark:bg-black ">
 
           {/* Auto-switch logo by themes */}
           <Link to="/home" className="text-lg leading-6 -translate-x-[0.01em]">
@@ -81,10 +88,12 @@ function Navbar() {
         </div>
 
         {/* Mobile view, bottom-fixed navigation bar */}
-        <div className="flex w-full justify-center items-center sm:hidden fixed top-0 z-50">
-          <div className="flex justify-around items-center gap-x-8 gap-y-8 max-w-[1240px] bg-opacity-30 text-[#4F0ED1] dark:text-white px-8 py-4 rounded-full fixed bottom-5 mx-auto 
-          bg-opacity-40 backdrop-blur-3xl border-white border-[1px] border-opacity-5 bg-white shadow-sm
-          dark:bg-opacity-40 dark:backdrop-blur-3xl dark:border-[1px] dark:border-opacity-5 dark:bg-black dark:shadow-lg " >
+        <div className="flex left-[10%] w-[80%] justify-center items-center sm:hidden fixed top-0 z-50">
+          <div className="
+            flex justify-around items-center gap-x-8 gap-y-8 max-w-[1240px] bg-opacity-50 
+            text-[#4F0ED1] dark:text-white px-8 py-4 rounded-full fixed bottom-5 mx-auto 
+            bg-opacity-40 backdrop-blur-3xl border-white border-[1px] border-opacity-5 bg-white shadow-sm
+            dark:bg-opacity-40 dark:backdrop-blur-3xl dark:border-[1px] dark:border-opacity-5 dark:bg-black dark:shadow-lg " >
             {navlinkes.map((navlink) => (
               // Dynamically generate each navigation link 
               <Link
@@ -99,7 +108,7 @@ function Navbar() {
           </div>
         </div>
       </FadeIn>
-    </div>
+    </Container>
   );
 }
 
