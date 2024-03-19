@@ -9,9 +9,11 @@ import Setting from "../pages/Settings";
 
 
 const UploadPopup = ({ isOpen, onClose, localAPIkey }) => {
+
     useEffect(() => {
         if (isOpen) {
             document.body.style.overflow = 'hidden';
+            let localAPIkey = localStorage.getItem('apiKey');
         } else {
             document.body.style.overflow = '';
         }
@@ -24,8 +26,6 @@ const UploadPopup = ({ isOpen, onClose, localAPIkey }) => {
     const [parsedText, setParsedText] = useState(""); // Save parsed pdf text
     const fileInputRef = useRef(null); // Create a ref to index the input file
     const [conbinedPrompts, setConbinedPrompts] = useState("");
-    const openAIkey = import.meta.env.VITE_OPENAI_API_KEY || process.env.OPENAI_API_KEY || localAPIkey;
-    
 
 
     const handleFileChange = (e) => {
@@ -34,10 +34,6 @@ const UploadPopup = ({ isOpen, onClose, localAPIkey }) => {
         if (
             selectedFile &&
             (selectedFile.type === "application/pdf" // PDF Document
-                // || 
-                // selectedFile.type === "application/msword" // Old Microsoft Word Document (.doc)
-                // || 
-                // selectedFile.type === "application/vnd.openxmlformats-officedocument.wordprocessingml.document" // Comtemporaty Microsoft Word Document (.docx)
             ) &&
             selectedFile.size <= 4 * 1024 * 1024 // Less than 4 MB
         ) {
@@ -79,21 +75,25 @@ const UploadPopup = ({ isOpen, onClose, localAPIkey }) => {
             return;
         }
 
-        // if (!localAPIkey) {
-        //     alert("API key is missing.");
-        //     return;
-        // }
+        const openAIkey = localStorage.getItem('apiKey');
+        // const openAIkey = import.meta.env.VITE_OPENAI_API_KEY || process.env.OPENAI_API_KEY || localAPIkey;
+
+        if (!openAIkey || openAIkey.length === 0) {
+            alert("OpenAI API key is missing.");
+            return;
+        }
+
+        alert("Nice! Your well refined resume is generating ... Please be patient and wait for seconds!");
 
         // Create a FormData object to send uploaded file and jobTitle
         const formData = new FormData();
-        // formData.append("file", file);
         formData.append("resume", file);
         formData.append("jobTitle", jobTitle);
-
-        const openAIkey = import.meta.env.VITE_OPENAI_API_KEY || process.env.OPENAI_API_KEY || localAPIkey;
-        // const openAIkey = "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";
         formData.append("openAIkey", openAIkey); 
-        // formData.append("openAIkey", localAPIkey); // Use localAPIkey here
+
+       
+        
+        
 
         /* 
             **************************************************************************************
@@ -110,6 +110,7 @@ const UploadPopup = ({ isOpen, onClose, localAPIkey }) => {
 
             // Fetche the data sent from the server
             const result = await response.json();
+            
             if (response.ok) {
                 // Clear the caches
                 setFile(null);
@@ -131,6 +132,7 @@ const UploadPopup = ({ isOpen, onClose, localAPIkey }) => {
 
         } catch (error) {
             console.error("Error fetching data:", error);
+            alert("Oops...we lost connection with server! Please check your network or if your OpenAI API key is missing or invalid.");
         }
 
         /* 
