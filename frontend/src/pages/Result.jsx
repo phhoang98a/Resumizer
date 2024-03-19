@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Container from "../components/Container";
 import { FadeIn } from "../components/FadeIn";
 import JobSpy from '../components/JobSpy';
@@ -9,12 +9,24 @@ import Socials from "../components/Socials";
 import TextField from "../components/TextField";
 import UploadPopup from "../components/UploadPopup";
 import InputPopUp from "../components/InputPopUp";
+import ReactMarkdown from 'react-markdown';
+import { saveAs } from 'file-saver';
+import jsPDF from 'jspdf';
 
-
-function Reuslt() {
+const Result = () => {
 
   // The upload pop-up display status - Default is not open
   const [showUploadPopup, setShowUploadPopup] = useState(false);
+  const [generatedResume, setGeneratedResume] = useState(null);
+  const [additionalPrompts, setAdditionalPrompts] = useState('')
+
+  useEffect(() => {
+    // Retrieve the generated resume from local storage
+    const storedResume = localStorage.getItem('generatedResume');
+    if (storedResume) {
+      setGeneratedResume(JSON.parse(storedResume));
+    }
+  }, []);
 
   // Toggle the upload pop-up
   const toggleUploadPopup = () => {
@@ -29,6 +41,80 @@ function Reuslt() {
     setShowInputPopup(!showInputPopup);
   };
 
+  // PDF export function
+  const handleExport = () => {
+    if (!generatedResume || !generatedResume.content) {
+      alert("No resume available.");
+      return;
+    }
+  
+    // Create a new instance of jsPDF
+    const pdf = new jsPDF();
+  
+    // Add the resume content to the PDF
+    pdf.text(generatedResume.content, 10, 10);
+  
+    // Save the PDF
+    pdf.save('Resume.pdf');
+  };
+
+  // Copy function
+  const handleCopy = () => {
+    // Check if the resume text exists
+    if (!generatedResume || !generatedResume.content) {
+      alert("No resume available.");
+      return;
+    }
+
+    // Extract resume content and get rid of " ```markdown" from beginning
+    const contentToCopy = generatedResume.content.replace(/^```markdown\s*/, '');
+
+    // Copy text to clipboard
+    navigator.clipboard
+      .writeText(contentToCopy)
+      .then(() => {
+        alert("Resume copied to clipboard successfully.");
+      })
+      .catch((error) => {
+        console.error("Failed to copy resume to clipboard:", error);
+        alert("Failed to copy resume to clipboard.");
+      });
+  };
+
+  const handleRegenerate = async () => {
+
+    if (!additionalPrompts.trim()) {
+      alert('Please write a prompt.');
+      return;
+    }
+
+    const prompt = `Reformat the following resume: ${generatedResume.content} 
+      according to the following prompt: ${additionalPrompts} 
+      PLEASE OUTPUT THE GENERATED REFINED RESUME ONLY WITHOUT ANY OTHER TEXT FORMATTED IN MARKDOWN GRAMMAR!`;
+
+    const openAIkey = import.meta.env.VITE_OPENAI_API_KEY || process.env.OPENAI_API_KEY || localAPIkey;  
+
+    try {
+      const response = await fetch('https://tiny-teal-swordfish-cap.cyclic.app/prompt', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ prompt, openAIkey }),
+      });
+
+      const result = await response.json();
+      if (response.ok) {
+        console.log("Resume regenerated successfully:", result);
+        setGeneratedResume(result);
+        localStorage.setItem('generatedResume', JSON.stringify(result));
+      } else {
+        console.error("Failed to regenerate resume:", result);
+      }
+    } catch (error) {
+      console.error("Error regenerating resume:", error);
+    }
+  };
 
   return (
     <Container id="result">
@@ -52,21 +138,32 @@ function Reuslt() {
             bg-opacity-20 backdrop-blur-3xl border-white border-[1px] border-opacity-5 bg-white 
             dark:bg-opacity-20 dark:backdrop-blur-3xl dark:border-black dark:border-[1px] dark:border-opacity-5 dark:bg-black text-[#7F739F]" >
 
-            Result
+            {generatedResume ? (
+              <ReactMarkdown>
+                {generatedResume.content} 
+              </ReactMarkdown> // Displaying the resume
+            ) : (
+              <div>No result yet</div> // Placeholder when there is no resume
+            )}
 
           </div>
 
           <div className="grid gap-x-4 gap-y-8 grid-cols-[1fr_1fr] max-mdd:grid-cols-[1fr] grid-rows-[auto]">
             <Button
               href="#"
-              variant="primary">
+              variant="primary"
+              onClick={handleExport}>
 
               Export
+
             </Button>
             <Button
               href="#"
-              variant="secondary">
+              variant="secondary"
+              onClick={handleCopy}>
+
               Copy All
+
             </Button>
           </div>
 
@@ -79,26 +176,29 @@ function Reuslt() {
         <Tile className="flex-col justify-between items-stretch gap-x-8 gap-y-8 text-center">
           <h3 className="max-md:text-[40px] max-md:leading-[48px] max-md:tracking-[-0.01em]">
             <span className="text-[#7F739F]">
-              Text Here To Add Additional
+              Add Additional
               {" "}
             </span>
 
             Prompts
           </h3>
 
-          {/* InputFiled for additional prompts */}
+          {/* InputField for additional prompts */}
           <div>
             <TextField
               className="w-full"
               rounded="rounded-3xl"
               // height="min-h-[200px]"
-              placeholder="Add additional prompts here. i.e, my target job is UX desginer ..."
+              placeholder="Add additional prompts here, i.e, my target job is UX designer ..."
+              value={additionalPrompts}
+              onChange={(e) => setAdditionalPrompts(e.target.value)}
             />
           </div>
 
           <Button
             href="#"
-            variant="primary">
+            variant="primary"
+            onClick={handleRegenerate}>
             Regenerate
           </Button>
         </Tile>
@@ -171,4 +271,4 @@ function Reuslt() {
   );
 }
 
-export default Reuslt;
+export default Result;
