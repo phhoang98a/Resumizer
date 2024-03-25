@@ -41,7 +41,6 @@ const Result = () => {
     setShowInputPopup(!showInputPopup);
   };
 
-  // PDF export function
   const handleExport = () => {
     if (!generatedResume || !generatedResume.content) {
       alert("No resume available.");
@@ -51,12 +50,33 @@ const Result = () => {
     // Create a new instance of jsPDF
     const pdf = new jsPDF();
   
-    // Add the resume content to the PDF
-    pdf.text(generatedResume.content, 10, 10);
+    const pageWidth = pdf.internal.pageSize.getWidth();
+    const pageHeight = pdf.internal.pageSize.getHeight();
+  
+    const margin = 10;
+    const initialY = 10;
+    let y = initialY;
+  
+    const maxWidth = pageWidth - margin * 2;
+    const lineHeight = 10; 
+
+    const lines = pdf.splitTextToSize(generatedResume.content, maxWidth);
+
+    lines.forEach(line => {
+      if (y > pageHeight - margin) { 
+        pdf.addPage();
+        y = initialY; 
+      }
+  
+      pdf.text(line, margin, y);
+      y += lineHeight; 
+    });
   
     // Save the PDF
     pdf.save('Resume.pdf');
   };
+  
+
 
   // Copy function
   const handleCopy = () => {
@@ -92,7 +112,16 @@ const Result = () => {
       according to the following prompt: ${additionalPrompts} 
       PLEASE OUTPUT THE GENERATED REFINED RESUME ONLY WITHOUT ANY OTHER TEXT FORMATTED IN MARKDOWN GRAMMAR!`;
 
-    const openAIkey = import.meta.env.VITE_OPENAI_API_KEY || process.env.OPENAI_API_KEY || localAPIkey;  
+    // const openAIkey = import.meta.env.VITE_OPENAI_API_KEY || process.env.OPENAI_API_KEY || localAPIkey;  
+    const openAIkey = localStorage.getItem('apiKey');
+
+    if (!openAIkey || openAIkey.length === 0) {
+        alert("OpenAI API key is missing.");
+        return;
+    }
+
+    alert("Nice! Your well refined resume is generating ... Please be patient and wait for seconds!");
+
 
     try {
       const response = await fetch('https://tiny-teal-swordfish-cap.cyclic.app/prompt', {
@@ -114,6 +143,7 @@ const Result = () => {
       }
     } catch (error) {
       console.error("Error regenerating resume:", error);
+      alert("Oops...we lost connection with server! Please clear your browser cookies, enter your OpenAI API key, refresh and try again.");
     }
   };
 
